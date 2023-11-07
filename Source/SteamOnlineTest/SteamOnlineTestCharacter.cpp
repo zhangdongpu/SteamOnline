@@ -15,8 +15,13 @@
 //////////////////////////////////////////////////////////////////////////
 // ASteamOnlineTestCharacter
 
-ASteamOnlineTestCharacter::ASteamOnlineTestCharacter()
+ASteamOnlineTestCharacter::ASteamOnlineTestCharacter() :
+    OnCreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(
+        this, &ThisClass::OnCreateSessionComplete))
 {
+
+
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -50,7 +55,22 @@ ASteamOnlineTestCharacter::ASteamOnlineTestCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-    // IOnlineSubsystem* OnlineSubsystem;
+    IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+    if (OnlineSubsystem)
+    {
+        OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(
+                -1,
+                15.f,
+                FColor::Blue,
+                FString::Printf(TEXT("Found Subsystem %s"),
+                    *OnlineSubsystem->GetSubsystemName().ToString())
+                );
+        }
+    }
 }
 
 void ASteamOnlineTestCharacter::BeginPlay()
@@ -66,6 +86,26 @@ void ASteamOnlineTestCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+void ASteamOnlineTestCharacter::CreateGameSession()
+{
+    if (!OnlineSessionInterface.IsValid())
+    {
+        return;
+    }
+
+    auto ExistingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
+    if(ExistingSession != nullptr)
+    {
+        OnlineSessionInterface->DestroySession(NAME_GameSession);
+    }
+    
+}
+
+void ASteamOnlineTestCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+    
 }
 
 //////////////////////////////////////////////////////////////////////////

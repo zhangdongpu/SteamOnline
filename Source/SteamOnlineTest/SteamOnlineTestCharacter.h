@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "SteamOnlineTestCharacter.generated.h"
 
 
@@ -64,6 +65,18 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 public:
+
+    // Pointer to the online session interface.
+    IOnlineSessionPtr OnlineSessionInterface;
+
+
+    UFUNCTION(BlueprintCallable)
+    void CreateGameSession();
     
+    void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+
+protected:
+
+    FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
 };
 
